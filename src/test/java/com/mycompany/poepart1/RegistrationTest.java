@@ -72,5 +72,26 @@ public class RegistrationTest {
         Registration reg = new Registration("John", "Doe", "kyl_1", "Ch33secake", "+27821234567");
         assertFalse(reg.checkPasswordComplexibility());
     }
+  
+    // CELL PHONE NUMBER TESTS
    
-    
+    @Test
+    public void testCheckCellPhoneNumber_Valid() {
+        // Valid SA number format (+27 followed by 821234567)
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        assertTrue(reg.checkCellPhoneNumber());
+    }
+
+    @Test
+    public void testCheckCellPhoneNumber_Invalid_IncorrectCountryCode() {
+        // Wrong country code prefix
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "0821234567");
+        assertFalse(reg.checkCellPhoneNumber());
+    }
+
+    @Test
+    public void testCheckCellPhoneNumber_Invalid_WrongDigitLength() {
+        // Invalid number of digits after prefix
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+278212345");
+        assertFalse(reg.checkCellPhoneNumber());
+    }
