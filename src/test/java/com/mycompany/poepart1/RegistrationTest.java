@@ -95,3 +95,70 @@ public class RegistrationTest {
         Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+278212345");
         assertFalse(reg.checkCellPhoneNumber());
     }
+    
+    // USER REGISTRATION PROCESS TESTS
+    
+
+    @Test
+    public void testRegisterUser_Success() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        String expected = "Username successfully captured.\n"
+                + "Password successfully captured.\n"
+                + "Cellphone number successfully captured.\n"
+                + "User registered successfully.";
+        
+        assertEquals(expected, reg.registerUser());
+    }
+
+    @Test
+    public void testRegisterUser_Failure_Username() {
+        Registration reg = new Registration("John", "Doe", "kyle_123", "Ch3&sec@ke", "+27821234567");
+        String expected = "Username is not correctly formatted, please ensure that username contains an underscore and is no more than 5 characters in length.";
+        
+        assertEquals(expected, reg.registerUser());
+    }
+
+    @Test
+    public void testRegisterUser_Failure_Password() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "password", "+27821234567");
+        String expected = "Password is not correctly formatted, please correct the password and try again.";
+        
+        assertEquals(expected, reg.registerUser());
+    }
+
+    @Test
+    public void testRegisterUser_Failure_CellPhone() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "0821234567");
+        String expected = "Cellphone number is not correctly formatted, please correct the number and try again.";
+        
+        assertEquals(expected, reg.registerUser());
+    }
+    
+    // LOGIN TESTS
+  
+    @Test
+    public void testLoginUser_Successful() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        assertTrue(reg.loginUser("kyl_1", "Ch3&sec@ke"));
+    }
+
+    @Test
+    public void testLoginUser_Failed_WrongPassword() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        assertFalse(reg.loginUser("kyl_1", "WrongPass123!"));
+    }
+
+    @Test
+    public void testReturnLoginStatus_Successful() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        String expected = "Welcome John Doe, it is great to see you again.";
+        assertEquals(expected, reg.returnLoginStatus(true));
+    }
+
+    @Test
+    public void testReturnLoginStatus_Failed() {
+        Registration reg = new Registration("John", "Doe", "kyl_1", "Ch3&sec@ke", "+27821234567");
+        String expected = "Username or password incorrect, please try again.";
+        assertEquals(expected, reg.returnLoginStatus(false));
+    }
+}
