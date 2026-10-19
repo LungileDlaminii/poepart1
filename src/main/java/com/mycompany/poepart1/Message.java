@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class Message {
     private final String messageID;
-    private String messageHash;
+    private final String messageHash;
     private String recipient;
     private String messageContent;
     private static int messageCounter = 0; 
