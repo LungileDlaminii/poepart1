@@ -16,7 +16,7 @@ import java.util.Random;
 public class Message {
     private final String messageID;
     private final String messageHash;
-    private String recipient;
+    private final String recipient;
     private String messageContent;
     private static int messageCounter = 0; 
     private static String allSentMessagesLog = "";
