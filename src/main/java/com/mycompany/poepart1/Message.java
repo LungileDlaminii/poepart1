@@ -11,6 +11,8 @@ package com.mycompany.poepart1;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Message {
@@ -19,7 +21,13 @@ public class Message {
     private final String recipient;
     private String messageContent;
     private static int messageCounter = 0; 
-    private static String allSentMessagesLog = "";
+
+    // Part 3 Arrays & Lists for dynamic tracking
+    private static List<String> sentMessagesList = new ArrayList<>();
+    private static List<String> disregardedMessagesList = new ArrayList<>();
+    private static List<Message> storedMessagesList = new ArrayList<>();
+    private static List<String> messageIDsList = new ArrayList<>();
+    private static List<String> messageHashesList = new ArrayList<>();
 
     // Constructor
     public Message(String recipient, String messageContent) {
@@ -81,9 +89,13 @@ public class Message {
     // Handles sending, storing, or discarding options
     public String sentMessage(String choice) {
         if (choice.equals("0")) {
+            disregardedMessagesList.add("Recipient: " + recipient + " | Message: " + messageContent);
             return "Press 0 to delete the message";
         } else if (choice.equalsIgnoreCase("store")) {
             storeMessage();
+            storedMessagesList.add(this);
+            messageIDsList.add(messageID);
+            messageHashesList.add(messageHash);
             return "Message successfully stored";
         } else {
             messageCounter++;
@@ -91,7 +103,9 @@ public class Message {
                              "Message Hash: " + messageHash + "\n" +
                              "Recipient: " + recipient + "\n" +
                              "Message: " + messageContent + "\n";
-            allSentMessagesLog += details + "\n";
+            sentMessagesList.add(details);
+            messageIDsList.add(messageID);
+            messageHashesList.add(messageHash);
             return "Message successfully sent\n" + details;
         }
     }
@@ -112,15 +126,149 @@ public class Message {
         }
     }
 
-    // Returns all sent messages
-    public static String printMessages() {
-        if (allSentMessagesLog.isEmpty()) {
-            return "No messages sent yet.";
-        }
-        return allSentMessagesLog;
+    // ==========================================
+    // PART 3: REQUIRED REPORTING & ARRAY METHODS
+    // ==========================================
+
+    // Helper to reset static lists between JUnit tests
+    public static void clearAllListsForTesting() {
+        sentMessagesList.clear();
+        disregardedMessagesList.clear();
+        storedMessagesList.clear();
+        messageIDsList.clear();
+        messageHashesList.clear();
+        messageCounter = 0;
     }
 
-    // Returns the total number of messages sent
+    // Helper to extract sent message texts for unit testing
+    public static List<String> getSentMessageContents() {
+        List<String> contents = new ArrayList<>();
+        for (String entry : sentMessagesList) {
+            for (String line : entry.split("\n")) {
+                if (line.startsWith("Message: ")) {
+                    contents.add(line.substring("Message: ".length()));
+                }
+            }
+        }
+        return contents;
+    }
+
+    // a. Display sender and recipient of all stored messages
+    public static String displayStoredSendersAndRecipients() {
+        if (storedMessagesList.isEmpty()) {
+            return "No stored messages available.";
+        }
+        StringBuilder sb = new StringBuilder("--- Stored Messages (Senders & Recipients) ---\n");
+        for (Message m : storedMessagesList) {
+            sb.append("Recipient: ").append(m.getRecipient()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    // b. Display the longest stored message
+    public static String displayLongestStoredMessage() {
+        if (storedMessagesList.isEmpty()) {
+            return "No stored messages available.";
+        }
+        Message longest = storedMessagesList.get(0);
+        for (Message m : storedMessagesList) {
+            if (m.getMessageContent().length() > longest.getMessageContent().length()) {
+                longest = m;
+            }
+        }
+        return longest.getMessageContent();
+    }
+
+    // c. Search for a message ID and display corresponding message content
+    public static String searchMessageByID(String targetID) {
+        for (Message m : storedMessagesList) {
+            if (m.getMessageID().equals(targetID)) {
+                return m.getMessageContent();
+            }
+        }
+        for (String entry : sentMessagesList) {
+            if (entry.contains("Message ID: " + targetID)) {
+                for (String line : entry.split("\n")) {
+                    if (line.startsWith("Message: ")) {
+                        return line.substring("Message: ".length());
+                    }
+                }
+            }
+        }
+        return "No message found with ID: " + targetID;
+    }
+
+    // d. Search for all messages stored or sent for a particular recipient
+    public static String searchMessagesByRecipient(String targetRecipient) {
+        StringBuilder sb = new StringBuilder();
+        for (Message m : storedMessagesList) {
+            if (m.getRecipient().equals(targetRecipient)) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(m.getMessageContent());
+            }
+        }
+        for (String entry : sentMessagesList) {
+            if (entry.contains("Recipient: " + targetRecipient)) {
+                for (String line : entry.split("\n")) {
+                    if (line.startsWith("Message: ")) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(line.substring("Message: ".length()));
+                    }
+                }
+            }
+        }
+        if (sb.length() == 0) {
+            return "No messages found for recipient: " + targetRecipient;
+        }
+        return sb.toString();
+    }
+
+    // e. Delete a message using the message hash
+    public static String deleteMessageByHash(String targetHash) {
+        for (int i = 0; i < storedMessagesList.size(); i++) {
+            Message m = storedMessagesList.get(i);
+            if (m.getMessageHash().equalsIgnoreCase(targetHash)) {
+                String deletedContent = m.getMessageContent();
+                String cleanContent = deletedContent.endsWith(".") 
+                        ? deletedContent.substring(0, deletedContent.length() - 1) 
+                        : deletedContent;
+                storedMessagesList.remove(i);
+                messageHashesList.remove(targetHash);
+                return "Message \"" + cleanContent + "\" successfully deleted.";
+            }
+        }
+        return "Message hash not found.";
+    }
+
+    // f. Display a report that lists full details of all stored messages
+    public static String displayStoredMessagesReport() {
+        if (storedMessagesList.isEmpty()) {
+            return "No stored messages in the report.";
+        }
+        StringBuilder sb = new StringBuilder("========================================\n");
+        sb.append("        STORED MESSAGES REPORT          \n");
+        sb.append("========================================\n");
+        for (Message m : storedMessagesList) {
+            sb.append("Message ID   : ").append(m.getMessageID()).append("\n");
+            sb.append("Message Hash : ").append(m.getMessageHash()).append("\n");
+            sb.append("Recipient    : ").append(m.getRecipient()).append("\n");
+            sb.append("Content      : ").append(m.getMessageContent()).append("\n");
+            sb.append("----------------------------------------\n");
+        }
+        return sb.toString();
+    }
+
+    public static String printMessages() {
+        if (sentMessagesList.isEmpty()) {
+            return "No messages sent yet.";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String msg : sentMessagesList) {
+            sb.append(msg).append("\n");
+        }
+        return sb.toString();
+    }
+
     public static int returnTotalMessages() {
         return messageCounter;
     }
